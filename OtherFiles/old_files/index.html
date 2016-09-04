@@ -1,0 +1,91 @@
+<html>
+<head>
+<script   src="https://code.jquery.com/jquery-3.1.0.js"   integrity="sha256-slogkvB1K3VOkzAI8QITxV3VzpOnkeNVsKvtkYLMjfk="   crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"> </script>
+</head>
+<body>
+<h1>It works!</h1>
+<table>
+    <thead>
+        <tr data-bind="foreach: columns"><th data-bind="text: Title"></th></tr>
+    </thead>
+    <tbody >
+    </tbody>
+</table>
+<script>
+var viewModel = {
+	obj: ko.observable(),
+	columns: ko.observableArray([]),
+	rows: ko.observableArray([]),
+	bal:  ko.observableArray([]),
+	ref:  ko.observableArray([])
+//	new_bal: ko.observableArray([])
+}
+$.getJSON("web_reports/hs/ds/getwh", function(data){
+	viewModel.obj(data);
+	viewModel.columns(data['#value'].column);
+});
+$.getJSON("web_reports/odata/standard.odata/AccumulationRegister_ТоварыНаСкладах/Balance()?$format=json&$select=Номенклатура_Key,ВНаличииBalance", function(data){
+	viewModel.bal(data.value);
+	console.log(data);
+	//viewModel.columns(data['#value'].column);
+});
+$.getJSON("web_reports/odata/standard.odata/Catalog_Номенклатура?$format=json&$select=Ref_Key,Description&$filter=not(IsFolder)", function(data){
+	viewModel.ref(data.value);
+	console.log(data);
+	//viewModel.columns(data['#value'].column);
+});
+//var obj;
+//$.getJSON( "remains.json", function() {
+//  console.log( "success" );
+//})
+//  .done(function() {
+//    console.log( "second success" );
+//  })
+//  .fail(function() {
+//    console.log( "error" );
+//  })
+//  .always(function() {
+//    console.log( "complete" );
+//	obj = a.responseJSON['#value'].column;
+//	$('body').append('<table><thead><tr></tr></thead></table>');
+//obj.forEach(function(item, i, obj) {
+//$('tr').append('<th>' + item.Title + '</th>');
+//});
+//  }); 
+var	hash = {};
+
+ko.utils.arrayForEach(viewModel.ref(), function(item) {
+	hash[item.Ref_Key] = item.Description;
+});
+ viewModel.new_bal = ko.computed(function() {
+var results = [];
+console.log(hash);
+ko.utils.arrayForEach(viewModel.bal(), function(item) {
+	item.name = hash[item.Ref_Key];
+	results.push(item);
+});
+return results;
+});
+
+ko.applyBindings(viewModel);
+
+var bal = [{ref:"1", bal:1},{ref:"2", bal:34},{ref:"3", bal:54},{ref:"4", bal:65},{ref:"5", bal:345}];
+var ref = [{ref:"1", name:"A"}, {ref:"2", name:"B"}, {ref:"3", name:"C"}, {ref:"4", name:"D"}, {ref:"5", name:"E"}, {ref:"6", name:"F"}, {ref:"7", name:"G"}];
+var hash = {};
+
+ref.forEach(function(item, i, obj) {
+	hash[item.ref] = item.name;
+});
+console.log(hash['3']);
+var bal_new = [];
+bal.forEach(function(item, i, obj) {
+	item.name = hash[item.ref];
+	bal_new.push(item);
+});
+
+console.log(bal_new);
+</script>
+</body>
+</html>
+
