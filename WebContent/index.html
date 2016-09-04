@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="js/accounting.min.js"></script>
+<script src="js/jquery-3.1.0.js"></script>
+<script src="js/data-model.js"></script>
+<script src="js/bootstrap.js"></script>
+<link href="css/bootstrap.css" rel="stylesheet">
+<link href="css/bootstrap-theme.css" rel="stylesheet">
+<meta charset="UTF-8">
+<title>Page title</title>
+</head>
+<body>
+
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12 col-sm-12">
+				<div class="table-responsive">
+					<table name="maintable" class="table">
+						<caption>Таблица остатков товаров</caption>
+						<tr>
+							<th>Товар</th>
+							<th>Остаток</th>
+							<th>Единица изм.</th>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+
+		<script type="text/javascript">
+			var oDataPath = "/web_reports/odata/standard.odata/";
+			var balanceRequest = oDataPath
+					+ "AccumulationRegister_ТоварыНаСкладах/Balance()?$format=json&$select=Номенклатура_Key,ВНаличииBalance";
+
+			var nomenklaturaFields = "Description,ЕдиницаИзмерения_Key";
+			var nomenklaturaRequest = oDataPath
+					+ "Catalog_Номенклатура?$format=json&$select=Ref_Key,"
+					+ nomenklaturaFields + "&$filter=not(IsFolder)";
+
+			var edinicyFields = "Description";
+			var edinicyRequest = oDataPath
+					+ "Catalog_ЕдиницыИзмерения?$format=json&$select=Ref_Key,"
+					+ edinicyFields;
+
+			$
+					.getJSON(
+							balanceRequest,
+							function(data) {
+								var balanceData = data.value;
+
+								$
+										.getJSON(
+												nomenklaturaRequest,
+												function(data) {
+													var nomenklaturaData = data.value;
+
+													$
+															.getJSON(
+																	edinicyRequest,
+																	function(
+																			data) {
+																		var edinicyData = data.value;
+																		var edinicyHash = getHashObject(
+																				edinicyData,
+																				"Ref_Key");
+
+																		fillHashObject(
+																				edinicyHash,
+																				edinicyData,
+																				"Ref_Key",
+																				edinicyFields
+																						.split(","));
+																		makeLeftJoin(
+																				nomenklaturaData,
+																				"ЕдиницаИзмерения_Key",
+																				"ЕдиницаИзмерения",
+																				edinicyHash);
+
+																		var nomenklaturaHash = getHashObject(
+																				nomenklaturaData,
+																				"Ref_Key");
+
+																		fillHashObject(
+																				nomenklaturaHash,
+																				nomenklaturaData,
+																				"Ref_Key",
+																				(nomenklaturaFields + ",ЕдиницаИзмерения")
+																						.split(","));
+																		makeLeftJoin(
+																				balanceData,
+																				"Номенклатура_Key",
+																				"Номенклатура",
+																				nomenklaturaHash);
+
+																		outputDataObject(balanceData);
+																	})
+												});
+							});
+			function outputDataObject(dataArray) {
+				var mt = $('[name = "maintable"]');
+				for (var i = 0; i < dataArray.length; i++) {
+					var rowData = dataArray[i];
+					var row = "<tr><td>"
+							+ rowData.Номенклатура.Description
+							+ "</td><td class='text-right'>"
+							+ accounting.formatNumber(rowData.ВНаличииBalance,
+									3, "") + "</td><td>"
+							+ rowData.Номенклатура.ЕдиницаИзмерения.Description
+							+ "</td></tr>";
+					mt.append(row);
+				}
+			}
+		</script>
+</body>
+</html>

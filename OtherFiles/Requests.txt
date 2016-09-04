@@ -1,0 +1,3 @@
+web_reports/odata/standard.odata/AccumulationRegister_ТоварыНаСкладах/Balance()?$format=json&$select=Номенклатура_Key,ВНаличииBalance
+
+web_reports/odata/standard.odata/Catalog_Номенклатура?$format=json&$select=Ref_Key,Description&$filter=not(IsFolder)
