@@ -3,7 +3,7 @@
 <head>
 <script src="js/accounting.min.js"></script>
 <script src="js/jquery-3.1.0.js"></script>
-<script src="js/data-model.js"></script>
+<script src="js/data-model-1c.js"></script>
 <script src="js/bootstrap.js"></script>
 <link href="css/bootstrap.css" rel="stylesheet">
 <link href="css/bootstrap-theme.css" rel="stylesheet">
@@ -29,74 +29,9 @@
 		</div>
 
 		<script type="text/javascript">
-			var oDataPath = "/web_reports/odata/standard.odata/";
-			var balanceRequest = oDataPath
-					+ "AccumulationRegister_ТоварыНаСкладах/Balance()?$format=json&$select=Номенклатура_Key,ВНаличииBalance";
+			
+			dm1c.getDataModel(outputDataObject);
 
-			var nomenklaturaFields = "Description,ЕдиницаИзмерения_Key";
-			var nomenklaturaRequest = oDataPath
-					+ "Catalog_Номенклатура?$format=json&$select=Ref_Key,"
-					+ nomenklaturaFields + "&$filter=not(IsFolder)";
-
-			var edinicyFields = "Description";
-			var edinicyRequest = oDataPath
-					+ "Catalog_ЕдиницыИзмерения?$format=json&$select=Ref_Key,"
-					+ edinicyFields;
-
-			$
-					.getJSON(
-							balanceRequest,
-							function(data) {
-								var balanceData = data.value;
-
-								$
-										.getJSON(
-												nomenklaturaRequest,
-												function(data) {
-													var nomenklaturaData = data.value;
-
-													$
-															.getJSON(
-																	edinicyRequest,
-																	function(
-																			data) {
-																		var edinicyData = data.value;
-																		var edinicyHash = getHashObject(
-																				edinicyData,
-																				"Ref_Key");
-
-																		fillHashObject(
-																				edinicyHash,
-																				edinicyData,
-																				"Ref_Key",
-																				edinicyFields
-																						.split(","));
-																		makeLeftJoin(
-																				nomenklaturaData,
-																				"ЕдиницаИзмерения_Key",
-																				"ЕдиницаИзмерения",
-																				edinicyHash);
-
-																		var nomenklaturaHash = getHashObject(
-																				nomenklaturaData,
-																				"Ref_Key");
-
-																		fillHashObject(
-																				nomenklaturaHash,
-																				nomenklaturaData,
-																				"Ref_Key",
-																				(nomenklaturaFields + ",ЕдиницаИзмерения")
-																						.split(","));
-																		makeLeftJoin(
-																				balanceData,
-																				"Номенклатура_Key",
-																				"Номенклатура",
-																				nomenklaturaHash);
-
-																		outputDataObject(balanceData);
-																	})
-												});
-							});
 			function outputDataObject(dataArray) {
 				var mt = $('[name = "maintable"]');
 				for (var i = 0; i < dataArray.length; i++) {
